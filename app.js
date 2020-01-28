@@ -1,20 +1,31 @@
 const fs = require("fs");
+const argsList = process.argv.slice(2);
+const filePrefix = argsList[0];
+const { promisify } = require("util");
+const readFile = promisify(fs.readFile);
+const appendFile = promisify(fs.appendFile);
+const removableProps = argsList.slice(1);
 
-function writeToFile(filePrefix) {
-    let features;
-    fs.readFile(`${filePrefix}.json`, (err, data) => {
-        if(err) throw err;
-        features = JSON.parse(data);
-        for(feature of features.features) {
-            feature.properties.raw_images && delete feature.properties.raw_images;
-            feature.properties.row && delete feature.properties.row;
-            feature.properties.table_column && delete feature.properties.table_column;
-        }
-        fs.appendFile(`updated_${filePrefix}.json`, JSON.stringify(features), { flag: "w+" }, (err) => {
-            if(err) throw err;
-            console.log("done");
-        })
-    });
+if (!filePrefix) {
+  console.log("Please give the relative file name with location!");
+  process.exit();
 }
-
-console.log(writeToFile("a4"))
+async function writeToFile(filePrefix) {
+  try {
+    let features;
+    filePrefix = filePrefix.includes(".json") ? filePrefix.split(".").shift() : filePrefix;
+    features = JSON.parse(await readFile(`${filePrefix}.json`));
+    for (feature of features.features) {
+      for (const propType of removableProps) {
+        feature.properties[propType] && delete feature.properties[propType];
+      }
+    }
+    await appendFile(`updated_${filePrefix.split("/").pop()}.json`, JSON.stringify(features), { flag: "w+" });
+    return `Data written to updated_${filePrefix.split("/").pop()}.json!`;
+  } catch (error) {
+    return error.message;
+  }
+}
+writeToFile(filePrefix)
+  .then(console.log)
+  .catch(console.error);
