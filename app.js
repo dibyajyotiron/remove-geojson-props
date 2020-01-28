@@ -6,11 +6,24 @@ const { promisify } = require("util");
 const readFile = promisify(fs.readFile);
 const appendFile = promisify(fs.appendFile);
 const [, ...removableProps] = argsList;
-if (!filePrefix) {
-    console.log("Please give the relative file name with location!");
+
+const helpMenu = () => 'dummy command "./app.js [file path] [property1] [property2] [property3]..."';
+const parseFileName = (filePrefix) => filePrefix.includes(".json") ? filePrefix.split(".").shift() : filePrefix;
+
+if(argsList.includes("help") || argsList.includes("--help")) {
+    console.log(helpMenu());
     process.exit();
 }
-const parseFileName = (filePrefix) => filePrefix.includes(".json") ? filePrefix.split(".").shift() : filePrefix;
+if (!filePrefix) {
+    console.log("Please give the relative file location!");
+    console.log(helpMenu());
+    process.exit();
+}
+if(!removableProps.length) {
+    console.error("No property to remove!");
+    console.log(helpMenu());
+    process.exit();
+}
 async function writeToFile(filePrefix) {
     try {
         let features;
