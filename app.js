@@ -1,11 +1,11 @@
+#!/usr/bin/env node
 const fs = require("fs");
-const argsList = process.argv.slice(2);
+const [,, ...argsList] = process.argv; // short hand for -> const argsList = process.argv.slice(2);
 const filePrefix = argsList[0];
 const { promisify } = require("util");
 const readFile = promisify(fs.readFile);
 const appendFile = promisify(fs.appendFile);
-const removableProps = argsList.slice(1);
-
+const [, ...removableProps] = argsList;
 if (!filePrefix) {
   console.log("Please give the relative file name with location!");
   process.exit();
